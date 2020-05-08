@@ -5,7 +5,6 @@ import fp from 'lodash/fp'
 import { createRemoteFileNode, FileSystemNode } from 'gatsby-source-filesystem'
 
 import {
-  constructS3UrlForAsset,
   createS3ImageAssetNode,
   createS3Instance,
   isImage,
@@ -38,8 +37,6 @@ export const sourceNodes = async (
     bucketName,
     // ================
     domain = 's3.amazonaws.com',
-    region = 'us-east-1',
-    protocol = 'http',
   }: SourceS3Options
 ) => {
   const { createNode, touchNode } = actions
@@ -87,13 +84,7 @@ export const sourceNodes = async (
           return
         }
 
-        const url = constructS3UrlForAsset({
-          bucketName,
-          domain,
-          key,
-          region,
-          protocol,
-        })
+        const url = s3.getSignedUrl('getObject', { Bucket: bucketName, Key: key, Expires: 60 })
         if (!url) {
           return
         }
