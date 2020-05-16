@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon'
 import { ExifParserFactory } from 'ts-exif-parser'
 import {
   GraphQLFloat,
@@ -19,28 +18,25 @@ const resolveExifData = _.memoize((
 ): ExifData | undefined => {
   const file = fs.readFileSync(image.absolutePath)
   const tags = ExifParserFactory.create(file).parse().tags
-  const timestamp: number | undefined = _.get(tags, 'DateTimeOriginal')
-  if (!timestamp) {
-    return
-  }
-  const DateCreatedISO = DateTime.fromMillis(timestamp * 1000).toISODate()
 
   const ExposureTime = _.get(tags, 'ExposureTime')
   const ShutterSpeedFraction = fracty(ExposureTime)
 
   return {
-    DateCreatedISO,
     ShutterSpeedFraction,
     ..._.pick(tags, [
       'DateTimeOriginal',
+      'DocumentName',
       'Exposure',
       'ExposureTime',
       'FNumber',
       'FocalLength',
+      'ImageDescription',
       'ISO',
       'LensModel',
       'Model',
       'ShutterSpeedValue',
+      'UserComment',
     ]),
   }
 })
@@ -67,15 +63,18 @@ export default ({ type }: ExtendNodeTypeOptions) => {
         fields: {
           DateCreatedISO: { type: GraphQLString },
           DateTimeOriginal: { type: GraphQLInt },
+          DocumentName: { type: GraphQLString },
           Exposure: { type: GraphQLString },
           ExposureTime: { type: GraphQLFloat },
           FNumber: { type: GraphQLFloat },
           FocalLength: { type: GraphQLFloat },
+          ImageDescription: { type: GraphQLString },
           ISO: { type: GraphQLInt },
           LensModel: { type: GraphQLString },
           Model: { type: GraphQLString },
           ShutterSpeedFraction: { type: GraphQLString },
           ShutterSpeedValue: { type: GraphQLFloat },
+          UserComment: { type: GraphQLString },
         },
         name: 'ExifData',
       }),
